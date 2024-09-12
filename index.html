@@ -282,7 +282,7 @@
             ) {
                 ballSpeedX = -ballSpeedX; // Reverse ball direction
                 let deltaY = ballY - (michaelY + paddleHeight / 2);
-                ballSpeedY = deltaY * 0.1; // Adjust vertical speed
+                ballSpeedY = deltaY * 0.25; // Adjust vertical speed
                 rallyScore++;
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`; // Update score
                 playHitSound(); // Play sound on hit
@@ -303,7 +303,7 @@
             ) {
                 ballSpeedX = -ballSpeedX;
                 let deltaY = ballY - (wernerY + paddleHeight / 2);
-                ballSpeedY = deltaY * 0.1;
+                ballSpeedY = deltaY * 0.25;
                 rallyScore++;
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
                 playHitSound(); // Play sound on hit
@@ -317,11 +317,11 @@
 
             // Reset the game when a player misses
             if (ballX < 0 || ballX > canvas.width) {
-                ballX = canvas.width - 100;
+                ballX = 0.9 * canvas.width;
                 ballY = canvas.height / 2;
                 rallyScore = 0;
                 wernerY = canvas.height / 2 - paddleHeight / 2; // Center Werner vertically
-                wernerX = 1450; // Position Werner on the right
+                wernerX = 0.9 * canvas.width; // Position Werner on the right
 		ballSpeedX = -3;
                 ballSpeedY = 0;
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
