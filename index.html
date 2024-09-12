@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gefeliciteerd Werner! - Tennisspel</title>
+    <title>Gefeliciteerd Werner! - Tennisspel (Debug)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,6 +21,11 @@
             border: 2px solid #000;
             background-color: #4CAF50;
         }
+        #debug {
+            margin-top: 10px;
+            text-align: left;
+            max-width: 800px;
+        }
     </style>
 </head>
 <body>
@@ -29,12 +34,21 @@
         <p>Gebruik de pijltjestoetsen omhoog en omlaag om te spelen.</p>
         <canvas id="gameCanvas" width="800" height="400"></canvas>
         <p id="score">Jouw Score: 0</p>
+        <div id="debug"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
+        const debugElement = document.getElementById('debug');
+
+        function log(message) {
+            console.log(message);
+            debugElement.innerHTML += message + '<br>';
+        }
+
+        log('Script started');
 
         let playerY = canvas.height / 2 - 40;
         let computerY = canvas.height / 2 - 40;
@@ -46,7 +60,9 @@
 
         // Load Werner's face image
         const wernerFace = new Image();
-        wernerFace.src = 'path/to/werner_face.png'; // Replace this with the actual path to Werner's face image
+        wernerFace.src = 'werner_face.png'; // Make sure this path is correct
+        wernerFace.onload = () => log('Werner face image loaded');
+        wernerFace.onerror = () => log('Error loading Werner face image');
 
         function drawRect(x, y, width, height, color) {
             ctx.fillStyle = color;
@@ -67,6 +83,7 @@
             } else if (key === 'ArrowDown' && playerY < canvas.height - 80) {
                 playerY += 20;
             }
+            log('Player moved: ' + playerY);
         }
 
         function updateComputerPosition() {
@@ -90,6 +107,7 @@
                 ballSpeedX = -ballSpeedX;
                 playerScore++;
                 scoreElement.textContent = `Jouw Score: ${playerScore}`;
+                log('Player scored: ' + playerScore);
             }
 
             if (ballX > canvas.width - 30 && ballY > computerY && ballY < computerY + 80) {
@@ -99,6 +117,7 @@
             if (ballX < 0 || ballX > canvas.width) {
                 ballX = canvas.width / 2;
                 ballY = canvas.height / 2;
+                log('Ball reset');
             }
         }
 
@@ -118,7 +137,11 @@
         }
 
         document.addEventListener('keydown', movePlayer);
+        log('Event listener added');
+
+        // Start the game loop
         gameLoop();
+        log('Game loop started');
     </script>
 </body>
 </html>
