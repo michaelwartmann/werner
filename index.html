@@ -73,7 +73,7 @@
             <img src="IMG_9980.jpg" alt="Michael and Werner 2">
         </div>
         <button class="playButton" onclick="startGame()">Play Game</button>
-        <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio> <!-- Add your song file here -->
+        <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio>
     </div>
 
     <canvas id="gameCanvas" width="900" height="500"></canvas>
@@ -87,12 +87,17 @@
         const ctx = gameCanvas.getContext('2d');
 
         function startGame() {
-            starterPage.style.display = 'none';
-            gameCanvas.style.display = 'block';
-            exitButton.style.display = 'block';
-            birthdaySong.pause();
-            startTennisGame();
-            document.documentElement.requestFullscreen(); // Make the game full screen
+            // Request full-screen mode first before initializing the game
+            document.documentElement.requestFullscreen().then(() => {
+                starterPage.style.display = 'none';
+                gameCanvas.style.display = 'block';
+                exitButton.style.display = 'block';
+                birthdaySong.pause();
+                startTennisGame(); // Initialize the game after entering full screen
+            }).catch((error) => {
+                console.error("Full-screen request failed:", error);
+                alert("Unable to enter full-screen mode. Please try again.");
+            });
         }
 
         function exitGame() {
@@ -106,7 +111,7 @@
         }
 
         function startTennisGame() {
-            // Add your game logic here based on the previous code
+            console.log("Game is starting...");
             let wernerX = gameCanvas.width - 60; // Position Werner on the right side of the court
             let wernerY = gameCanvas.height / 2 - 60;
             let targetX = wernerX;
@@ -119,30 +124,69 @@
             let ballSpeedY = 1.5;
             let rallyScore = 0;
 
-            // Game loop and logic go here...
+            function updateWernerPosition() {
+                let deltaX = targetX - wernerX;
+                let deltaY = targetY - wernerY;
+                let distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+                if (distance > maxSpeed) {
+                    wernerX += (deltaX / distance) * maxSpeed;
+                    wernerY += (deltaY / distance) * maxSpeed;
+                } else {
+                    wernerX = targetX;
+                    wernerY = targetY;
+                }
+
+                if (wernerX < gameCanvas.width / 2) {
+                    wernerX = gameCanvas.width / 2;
+                }
+                if (wernerY < 0) {
+                    wernerY = 0;
+                }
+                if (wernerY > gameCanvas.height - 120) {
+                    wernerY = gameCanvas.height - 120;
+                }
+            }
+
+            function updateBallPosition() {
+                ballX += ballSpeedX;
+                ballY += ballSpeedY;
+
+                if (ballY < 10) {
+                    ballY = 10;
+                    ballSpeedY = Math.abs(ballSpeedY);
+                } else if (ballY > gameCanvas.height - 10) {
+                    ballY = gameCanvas.height - 10;
+                    ballSpeedY = -Math.abs(ballSpeedY);
+                }
+
+                // Handle collisions and gameplay logic...
+            }
 
             function gameLoop() {
                 ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-                // Draw court background, Michael, Werner, and handle collisions...
+                updateWernerPosition();
+                updateBallPosition();
 
-                // Request the next frame
+                // Draw the game elements: court, players, ball, etc.
+
                 requestAnimationFrame(gameLoop);
             }
 
-            // Add touch event handlers for controlling Werner
-            gameCanvas.addEventListener('touchstart', (event) => {
-                const rect = gameCanvas.getBoundingClientRect();
-                const touchX = event.touches[0].clientX - rect.left;
-                const touchY = event.touches[0].clientY - rect.top;
-
-                // Adjust touch limits to Werner's side of the court
-                targetX = Math.max(gameCanvas.width / 2, Math.min(touchX, gameCanvas.width - 60));
-                targetY = Math.max(0, Math.min(touchY, gameCanvas.height - 120));
-            });
-
-            // Initialize the game loop
+            // Ensure the game starts correctly
+            gameCanvas.style.display = 'block';
             gameLoop();
         }
+
+        // Handle touch and click events for controlling Werner
+        gameCanvas.addEventListener('touchstart', (event) => {
+            const rect = gameCanvas.getBoundingClientRect();
+            const touchX = event.touches[0].clientX - rect.left;
+            const touchY = event.touches[0].clientY - rect.top;
+
+            targetX = Math.max(gameCanvas.width / 2, Math.min(touchX, gameCanvas.width - 60));
+            targetY = Math.max(0, Math.min(touchY, gameCanvas.height - 120));
+        });
 
         // Play the birthday song on load
         window.onload = function() {
