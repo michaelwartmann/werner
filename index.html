@@ -16,10 +16,22 @@
         }
         #gameContainer {
             text-align: center;
+            position: relative;
         }
         canvas {
             border: 2px solid #000;
-            background-color: #4CAF50;
+        }
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 20px;
+            display: none;
         }
     </style>
 </head>
@@ -28,27 +40,41 @@
         <h1>Gefeliciteerd met je verjaardag, Werner!</h1>
         <p>Gebruik de 'W' toets om omhoog te gaan en de 'S' toets om omlaag te gaan.</p>
         <canvas id="gameCanvas" width="900" height="500"></canvas>
-        <p id="score">Jouw Score: 0</p>
+        <p id="score">Aantal slagen in de rally: 0</p>
+        <div id="message"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
+        const messageElement = document.getElementById('message');
 
         const paddleWidth = 60;
         const paddleHeight = 120;
-        let playerY = canvas.height / 2 - paddleHeight / 2;
-        let computerY = canvas.height / 2 - paddleHeight / 2;
+        let wernerY = canvas.height / 2 - paddleHeight / 2; // Werner is the playable character on the right
+        let wernerX = canvas.width - paddleWidth; // Start Werner on the right side
+        let targetX = wernerX; // Werner's movement target
+        let targetY = wernerY;
+        const wernerMaxSpeed = 5; // Maximum speed Werner can move
+        let michaelY = canvas.height / 2 - paddleHeight / 2; // Michael is the computer player on the left
         let ballX = canvas.width / 2;
         let ballY = canvas.height / 2;
-        let ballSpeedX = 6;
-        let ballSpeedY = 6;
-        let playerScore = 0;
+        let ballSpeedX = 2; // Initial slow speed
+        let ballSpeedY = 1.5; // Initial slow speed
+        let rallyScore = 0;
+
+        // Load Michael's face image
+        const michaelFace = new Image();
+        michaelFace.src = 'michael_face.png'; // Ensure the path is correct
 
         // Load Werner's face image
         const wernerFace = new Image();
-        wernerFace.src = 'werner_face.png'; // Make sure this path is correct
+        wernerFace.src = 'werner_face.png'; // Replace this with the path to Werner's face image
+
+        // Load the court background image
+        const courtImage = new Image();
+        courtImage.src = 'court.png'; // Replace with the correct path to your court image
 
         function drawRect(x, y, width, height, color) {
             ctx.fillStyle = color;
@@ -62,75 +88,163 @@
             ctx.fill();
         }
 
-        function movePlayer(e) {
-            e.preventDefault(); // Prevent default key behavior
-            const key = e.key.toLowerCase();
-            const moveAmount = 20;
-            if (key === 'w' && playerY > 0) {
-                playerY = Math.max(0, playerY - moveAmount);
-            } else if (key === 's' && playerY < canvas.height - paddleHeight) {
-                playerY = Math.min(canvas.height - paddleHeight, playerY + moveAmount);
+        function updateWernerPosition() {
+            // Calculate the distance Werner needs to move
+            let deltaX = targetX - wernerX;
+            let deltaY = targetY - wernerY;
+            let distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            // Move Werner gradually towards the target, respecting the maximum speed
+            if (distance > wernerMaxSpeed) {
+                wernerX += (deltaX / distance) * wernerMaxSpeed;
+                wernerY += (deltaY / distance) * wernerMaxSpeed;
+            } else {
+                wernerX = targetX;
+                wernerY = targetY;
+            }
+
+            // Ensure Werner stays on his side of the court
+            if (wernerX < canvas.width / 2) {
+                wernerX = canvas.width / 2;
+            }
+            if (wernerY < 0) {
+                wernerY = 0;
+            }
+            if (wernerY > canvas.height - paddleHeight) {
+                wernerY = canvas.height - paddleHeight;
             }
         }
 
-        function updateComputerPosition() {
-            const computerCenter = computerY + paddleHeight / 2;
-            if (computerCenter < ballY - 35) {
-                computerY += 5;
-            } else if (computerCenter > ballY + 35) {
-                computerY -= 5;
+        function updateMichaelPosition() {
+            // Michael's movement is more accurate and responsive to the ball's position
+            const michaelCenter = michaelY + paddleHeight / 2;
+            const targetPosition = ballY - paddleHeight / 4; // Aim closer to the ball's center
+            const moveSpeed = 4; // Increased speed to improve response
+
+            if (michaelCenter < targetPosition) {
+                michaelY = Math.min(canvas.height - paddleHeight, michaelY + moveSpeed);
+            } else if (michaelCenter > targetPosition) {
+                michaelY = Math.max(0, michaelY - moveSpeed);
             }
-            computerY = Math.max(0, Math.min(canvas.height - paddleHeight, computerY));
         }
 
         function updateBallPosition() {
             ballX += ballSpeedX;
             ballY += ballSpeedY;
 
-            if (ballY < 10 || ballY > canvas.height - 10) {
-                ballSpeedY = -ballSpeedY;
+            // Adjusted ball boundary checks to prevent it from getting stuck
+            if (ballY < 10) {
+                ballY = 10; // Prevent ball from going off-screen
+                ballSpeedY = Math.abs(ballSpeedY); // Bounce downwards
+            } else if (ballY > canvas.height - 10) {
+                ballY = canvas.height - 10; // Prevent ball from going off-screen
+                ballSpeedY = -Math.abs(ballSpeedY); // Bounce upwards
             }
 
-            if (ballX < paddleWidth && ballY > playerY && ballY < playerY + paddleHeight) {
+            // Collision with Michael's paddle
+            if (
+                ballX < paddleWidth &&
+                ballY > michaelY &&
+                ballY < michaelY + paddleHeight &&
+                ballSpeedX < 0
+            ) {
                 ballSpeedX = -ballSpeedX;
-                let deltaY = ballY - (playerY + paddleHeight / 2);
-                ballSpeedY = deltaY * 0.35;
-                playerScore++;
-                scoreElement.textContent = `Jouw Score: ${playerScore}`;
+                let deltaY = ballY - (michaelY + paddleHeight / 2);
+                ballSpeedY = deltaY * 0.1; // Reduced impact angle to minimize boundary bounces
+                rallyScore++;
+                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+
+                // Increase speed after 10 shots in the rally
+                if (rallyScore === 10) {
+                    showMessage("Nu wat sneller, Werner!");
+                    ballSpeedX *= 1.5;
+                    ballSpeedY *= 1.5;
+                }
             }
 
-            if (ballX > canvas.width - paddleWidth && ballY > computerY && ballY < computerY + paddleHeight) {
+            // Collision with Werner's paddle
+            if (
+                ballX > wernerX &&
+                ballY > wernerY &&
+                ballY < wernerY + paddleHeight &&
+                ballSpeedX > 0
+            ) {
                 ballSpeedX = -ballSpeedX;
-                let deltaY = ballY - (computerY + paddleHeight / 2);
-                ballSpeedY = deltaY * 0.35;
+                let deltaY = ballY - (wernerY + paddleHeight / 2);
+                ballSpeedY = deltaY * 0.1; // Reduced impact angle to minimize boundary bounces
+                rallyScore++;
+                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+
+                // Increase speed after 10 shots in the rally
+                if (rallyScore === 10) {
+                    showMessage("Nu wat sneller, Werner!");
+                    ballSpeedX *= 1.5;
+                    ballSpeedY *= 1.5;
+                }
             }
 
+            // Reset the game when a player misses
             if (ballX < 0 || ballX > canvas.width) {
                 ballX = canvas.width / 2;
                 ballY = canvas.height / 2;
+                rallyScore = 0;
+                ballSpeedX = 2; // Reset to initial slow speed
+                ballSpeedY = 1.5;
+                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+                showMessage("Mooie punt! Nog een keer!");
             }
         }
 
+        function showMessage(text) {
+            messageElement.textContent = text;
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 2000); // Message will disappear after 2 seconds
+        }
+
         function gameLoop() {
-            drawRect(0, 0, canvas.width, canvas.height, '#4CAF50');
-            
-            // Draw Werner's face as the player paddle
-            if (wernerFace.complete) {
-                ctx.drawImage(wernerFace, 0, playerY, paddleWidth, paddleHeight);
+            // Draw the court background image if loaded
+            if (courtImage.complete) {
+                ctx.drawImage(courtImage, 0, 0, canvas.width, canvas.height);
+            }
+
+            // Draw Michael's face as the left paddle (computer-controlled)
+            if (michaelFace.complete) {
+                ctx.drawImage(michaelFace, 0, michaelY, paddleWidth, paddleHeight);
             } else {
-                drawRect(0, playerY, paddleWidth, paddleHeight, 'white');
+                drawRect(0, michaelY, paddleWidth, paddleHeight, 'white');
             }
             
-            drawRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight, 'white');
+            // Draw Werner's face as the right paddle (player-controlled)
+            if (wernerFace.complete) {
+                ctx.drawImage(wernerFace, wernerX, wernerY, paddleWidth, paddleHeight);
+            } else {
+                drawRect(wernerX, wernerY, paddleWidth, paddleHeight, 'white');
+            }
+            
             drawCircle(ballX, ballY, 10, 'yellow');
             
             updateBallPosition();
-            updateComputerPosition();
+            updateMichaelPosition();
+            updateWernerPosition();
             
             requestAnimationFrame(gameLoop);
         }
 
-        document.addEventListener('keydown', movePlayer);
+        // Handle touch and click events for Werner's movement
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('mousedown', handleTouch);
+
+        function handleTouch(event) {
+            const rect = canvas.getBoundingClientRect();
+            const touchX = event.clientX - rect.left || event.touches[0].clientX - rect.left;
+            const touchY = event.clientY - rect.top || event.touches[0].clientY - rect.top;
+
+            // Set target position within Werner's half of the court
+            targetX = Math.max(canvas.width / 2, Math.min(touchX, canvas.width - paddleWidth));
+            targetY = Math.max(0, Math.min(touchY, canvas.height - paddleHeight));
+        }
 
         // Start the game loop
         gameLoop();
