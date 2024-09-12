@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gefeliciteerd Werner! - Tennisspel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #gameContainer {
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #000;
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <h1>Gefeliciteerd met je verjaardag, Werner!</h1>
+        <p>Gebruik de pijltjestoetsen omhoog en omlaag om te spelen.</p>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <p id="score">Jouw Score: 0</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        let playerY = canvas.height / 2 - 40;
+        let computerY = canvas.height / 2 - 40;
+        let ballX = canvas.width / 2;
+        let ballY = canvas.height / 2;
+        let ballSpeedX = 5;
+        let ballSpeedY = 5;
+        let playerScore = 0;
+
+        // Load Werner's face image
+        const wernerFace = new Image();
+        wernerFace.src = 'path/to/werner_face.png'; // Replace this with the actual path to Werner's face image
+
+        function drawRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawCircle(x, y, radius, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+            ctx.fill();
+        }
+
+        function movePlayer(e) {
+            const key = e.key;
+            if (key === 'ArrowUp' && playerY > 0) {
+                playerY -= 20;
+            } else if (key === 'ArrowDown' && playerY < canvas.height - 80) {
+                playerY += 20;
+            }
+        }
+
+        function updateComputerPosition() {
+            const computerCenter = computerY + 40;
+            if (computerCenter < ballY - 35) {
+                computerY += 6;
+            } else if (computerCenter > ballY + 35) {
+                computerY -= 6;
+            }
+        }
+
+        function updateBallPosition() {
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            if (ballY < 10 || ballY > canvas.height - 10) {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            if (ballX < 30 && ballY > playerY && ballY < playerY + 80) {
+                ballSpeedX = -ballSpeedX;
+                playerScore++;
+                scoreElement.textContent = `Jouw Score: ${playerScore}`;
+            }
+
+            if (ballX > canvas.width - 30 && ballY > computerY && ballY < computerY + 80) {
+                ballSpeedX = -ballSpeedX;
+            }
+
+            if (ballX < 0 || ballX > canvas.width) {
+                ballX = canvas.width / 2;
+                ballY = canvas.height / 2;
+            }
+        }
+
+        function gameLoop() {
+            drawRect(0, 0, canvas.width, canvas.height, '#4CAF50');
+            
+            // Draw Werner's face as the player paddle
+            ctx.drawImage(wernerFace, 10, playerY, 20, 80);
+            
+            drawRect(canvas.width - 30, computerY, 20, 80, 'white');
+            drawCircle(ballX, ballY, 10, 'yellow');
+            
+            updateBallPosition();
+            updateComputerPosition();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('keydown', movePlayer);
+        gameLoop();
+    </script>
+</body>
+</html>
