@@ -58,22 +58,8 @@
             font-size: 20px;
             display: none; /* Hidden by default */
         }
-        /* Styling for the score display and longest rally */
-        .rally-container {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px; /* Space between score displays */
-            background: rgba(0, 0, 0, 0.7);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 18px;
-            color: #fff;
-        }
-        /* Styling for the exit and rotate buttons */
-        #exitButton, #rotateButton {
+        /* Styling for the exit button and rotate message */
+        #exitButton {
             position: absolute;
             top: 5px;
             left: 50%;
@@ -85,11 +71,34 @@
             border: none;
             border-radius: 3px;
             cursor: pointer;
-            margin: 2px;
+            margin-right: 10px;
         }
-        #rotateButton {
-            left: calc(50% + 60px); /* Position next to exit button */
-            background-color: #28a745; /* Green background for rotate button */
+        .rotate-message {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(calc(-50% + 120px)); /* Position next to the exit button */
+            font-size: 12px;
+            color: #ffcc00;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        /* Styling for the rally displays at the bottom */
+        .rally-container {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px; /* Space between rally displays */
+            font-size: 12px;
+            color: #fff;
+        }
+        .rally-display {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 5px;
+            border-radius: 3px;
         }
         /* Styling for the play and music buttons */
         .playButton, .musicButton {
@@ -126,11 +135,11 @@
     <!-- Game Container -->
     <div id="gameContainer">
         <button id="exitButton">Exit</button> <!-- Button to exit the game -->
-        <button id="rotateButton" onclick="rotateScreen()">Rotate Screen</button> <!-- Button to rotate the screen -->
+        <span class="rotate-message">Rotate for better experience</span> <!-- Rotate message -->
         <canvas id="gameCanvas"></canvas> <!-- Canvas for game rendering -->
         <div class="rally-container">
-            <p id="score">Aantal slagen in de rally: 0</p> <!-- Score display -->
-            <p id="longestRally">Langste rally: 0</p> <!-- Longest rally display -->
+            <p id="longestRally" class="rally-display">Langste rally: 0</p> <!-- Longest rally display -->
+            <p id="score" class="rally-display">Aantal slagen: 0</p> <!-- Current rally display -->
         </div>
         <div id="message"></div> <!-- Message display -->
         <audio id="hitSound" src="hit.mp3"></audio> <!-- Hit sound effect -->
@@ -199,17 +208,6 @@
             gameContainer.style.display = 'none'; // Hide game container
             birthdaySong.play(); // Resume the birthday song
         });
-
-        // Function to force rotate the screen
-        function rotateScreen() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(err => {
-                    console.log('Screen orientation lock failed:', err);
-                });
-            } else {
-                alert('Screen orientation lock is not supported on your device.');
-            }
-        }
 
         // Resize the canvas to fit the window
         function resizeCanvasToFit() {
@@ -296,7 +294,7 @@
                 let deltaY = ballY - (michaelY + paddleHeight / 2);
                 ballSpeedY = deltaY * 0.25; // Adjust vertical speed
                 rallyScore++;
-                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`; // Update score
+                scoreElement.textContent = `Aantal slagen: ${rallyScore}`; // Update score
                 playHitSound(); // Play sound on hit
 
                 if (rallyScore % 3 === 0) { // Increase speed after 3 hits
@@ -317,7 +315,7 @@
                 let deltaY = ballY - (wernerY + paddleHeight / 2);
                 ballSpeedY = deltaY * 0.25;
                 rallyScore++;
-                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+                scoreElement.textContent = `Aantal slagen: ${rallyScore}`;
                 playHitSound(); // Play sound on hit
 
                 if (rallyScore % 3 === 0) {
@@ -340,7 +338,7 @@
                 wernerX = 0.9 * canvas.width; // Position Werner on the right
                 ballSpeedX = -3;
                 ballSpeedY = 0;
-                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+                scoreElement.textContent = `Aantal slagen: ${rallyScore}`;
                 showMessage("Mooie punt! Nog een keer!");
             }
         }
