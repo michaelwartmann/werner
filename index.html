@@ -45,7 +45,7 @@
             margin: 0 auto; /* Centers canvas */
             border: 2px solid #000; /* Black border around the canvas */
         }
-        /* Message box styling */
+        /* Styling for the message box */
         #message {
             position: absolute;
             top: 50%;
@@ -58,29 +58,19 @@
             font-size: 20px;
             display: none; /* Hidden by default */
         }
-        /* Styling for the score display */
-        #score {
-            position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 18px;
-        }
-        /* Styling for the longest rally display */
-        #longestRally {
+        /* Styling for the score display and longest rally */
+        .rally-container {
             position: absolute;
             bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
+            display: flex;
+            gap: 20px; /* Space between score displays */
             background: rgba(0, 0, 0, 0.7);
-            color: #fff;
             padding: 5px 10px;
             border-radius: 5px;
             font-size: 18px;
+            color: #fff;
         }
         /* Styling for the exit and rotate buttons */
         #exitButton, #rotateButton {
@@ -138,8 +128,10 @@
         <button id="exitButton">Exit</button> <!-- Button to exit the game -->
         <button id="rotateButton" onclick="rotateScreen()">Rotate Screen</button> <!-- Button to rotate the screen -->
         <canvas id="gameCanvas"></canvas> <!-- Canvas for game rendering -->
-        <p id="score">Aantal slagen in de rally: 0</p> <!-- Score display -->
-        <p id="longestRally">Langste rally: 0</p> <!-- Longest rally display -->
+        <div class="rally-container">
+            <p id="score">Aantal slagen in de rally: 0</p> <!-- Score display -->
+            <p id="longestRally">Langste rally: 0</p> <!-- Longest rally display -->
+        </div>
         <div id="message"></div> <!-- Message display -->
         <audio id="hitSound" src="hit.mp3"></audio> <!-- Hit sound effect -->
     </div>
@@ -208,9 +200,15 @@
             birthdaySong.play(); // Resume the birthday song
         });
 
-        // Function to rotate the screen
+        // Function to force rotate the screen
         function rotateScreen() {
-            alert('Please rotate your screen manually to landscape mode for the best experience.');
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(err => {
+                    console.log('Screen orientation lock failed:', err);
+                });
+            } else {
+                alert('Screen orientation lock is not supported on your device.');
+            }
         }
 
         // Resize the canvas to fit the window
