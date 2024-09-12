@@ -29,3 +29,20 @@ To run the game locally, follow these steps:
 1. Clone the repository:
    ```bash
    git clone https://github.com/michaelwartmann/werner.git
+
+## Contributing
+
+If you have ideas for improvements or spot any bugs, feel free to submit issues or pull requests to improve the game. Contributions are welcome to make the game even more fun!
+
+## License
+
+This project is licensed under the MIT License. You are free to use, modify, and distribute this game, as long as you include the original license. See the [LICENSE](LICENSE) file for more details.
+
+## Acknowledgements
+
+- **Michael**: For developing the game concept and coding the game.
+- **Werner**: The inspiration and reason behind this exciting tennis game.
+- **OpenAI's ChatGPT**: Assistance in bringing the game to life through coding support.
+
+Enjoy the game, and have fun keeping the rally going!
+
