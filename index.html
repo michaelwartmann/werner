@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gefeliciteerd Werner! - Tennisspel (Debug)</title>
+    <title>Gefeliciteerd Werner! - Tennisspel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,48 +21,34 @@
             border: 2px solid #000;
             background-color: #4CAF50;
         }
-        #debug {
-            margin-top: 10px;
-            text-align: left;
-            max-width: 800px;
-        }
     </style>
 </head>
 <body>
     <div id="gameContainer">
         <h1>Gefeliciteerd met je verjaardag, Werner!</h1>
-        <p>Gebruik de pijltjestoetsen omhoog en omlaag om te spelen.</p>
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <p>Gebruik de 'W' toets om omhoog te gaan en de 'S' toets om omlaag te gaan.</p>
+        <canvas id="gameCanvas" width="900" height="500"></canvas>
         <p id="score">Jouw Score: 0</p>
-        <div id="debug"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
-        const debugElement = document.getElementById('debug');
 
-        function log(message) {
-            console.log(message);
-            debugElement.innerHTML += message + '<br>';
-        }
-
-        log('Script started');
-
-        let playerY = canvas.height / 2 - 40;
-        let computerY = canvas.height / 2 - 40;
+        const paddleWidth = 60;
+        const paddleHeight = 120;
+        let playerY = canvas.height / 2 - paddleHeight / 2;
+        let computerY = canvas.height / 2 - paddleHeight / 2;
         let ballX = canvas.width / 2;
         let ballY = canvas.height / 2;
-        let ballSpeedX = 5;
-        let ballSpeedY = 5;
+        let ballSpeedX = 6;
+        let ballSpeedY = 6;
         let playerScore = 0;
 
         // Load Werner's face image
         const wernerFace = new Image();
         wernerFace.src = 'werner_face.png'; // Make sure this path is correct
-        wernerFace.onload = () => log('Werner face image loaded');
-        wernerFace.onerror = () => log('Error loading Werner face image');
 
         function drawRect(x, y, width, height, color) {
             ctx.fillStyle = color;
@@ -77,22 +63,24 @@
         }
 
         function movePlayer(e) {
-            const key = e.key;
-            if (key === 'ArrowUp' && playerY > 0) {
-                playerY -= 20;
-            } else if (key === 'ArrowDown' && playerY < canvas.height - 80) {
-                playerY += 20;
+            e.preventDefault(); // Prevent default key behavior
+            const key = e.key.toLowerCase();
+            const moveAmount = 20;
+            if (key === 'w' && playerY > 0) {
+                playerY = Math.max(0, playerY - moveAmount);
+            } else if (key === 's' && playerY < canvas.height - paddleHeight) {
+                playerY = Math.min(canvas.height - paddleHeight, playerY + moveAmount);
             }
-            log('Player moved: ' + playerY);
         }
 
         function updateComputerPosition() {
-            const computerCenter = computerY + 40;
+            const computerCenter = computerY + paddleHeight / 2;
             if (computerCenter < ballY - 35) {
-                computerY += 6;
+                computerY += 5;
             } else if (computerCenter > ballY + 35) {
-                computerY -= 6;
+                computerY -= 5;
             }
+            computerY = Math.max(0, Math.min(canvas.height - paddleHeight, computerY));
         }
 
         function updateBallPosition() {
@@ -103,21 +91,23 @@
                 ballSpeedY = -ballSpeedY;
             }
 
-            if (ballX < 30 && ballY > playerY && ballY < playerY + 80) {
+            if (ballX < paddleWidth && ballY > playerY && ballY < playerY + paddleHeight) {
                 ballSpeedX = -ballSpeedX;
+                let deltaY = ballY - (playerY + paddleHeight / 2);
+                ballSpeedY = deltaY * 0.35;
                 playerScore++;
                 scoreElement.textContent = `Jouw Score: ${playerScore}`;
-                log('Player scored: ' + playerScore);
             }
 
-            if (ballX > canvas.width - 30 && ballY > computerY && ballY < computerY + 80) {
+            if (ballX > canvas.width - paddleWidth && ballY > computerY && ballY < computerY + paddleHeight) {
                 ballSpeedX = -ballSpeedX;
+                let deltaY = ballY - (computerY + paddleHeight / 2);
+                ballSpeedY = deltaY * 0.35;
             }
 
             if (ballX < 0 || ballX > canvas.width) {
                 ballX = canvas.width / 2;
                 ballY = canvas.height / 2;
-                log('Ball reset');
             }
         }
 
@@ -125,9 +115,13 @@
             drawRect(0, 0, canvas.width, canvas.height, '#4CAF50');
             
             // Draw Werner's face as the player paddle
-            drawRect(10, playerY, 20, 80, 'white');
+            if (wernerFace.complete) {
+                ctx.drawImage(wernerFace, 0, playerY, paddleWidth, paddleHeight);
+            } else {
+                drawRect(0, playerY, paddleWidth, paddleHeight, 'white');
+            }
             
-            drawRect(canvas.width - 30, computerY, 20, 80, 'white');
+            drawRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight, 'white');
             drawCircle(ballX, ballY, 10, 'yellow');
             
             updateBallPosition();
@@ -137,11 +131,9 @@
         }
 
         document.addEventListener('keydown', movePlayer);
-        log('Event listener added');
 
         // Start the game loop
         gameLoop();
-        log('Game loop started');
     </script>
 </body>
 </html>
