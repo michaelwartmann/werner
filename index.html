@@ -14,6 +14,21 @@
             background-color: #f0f0f0;
             overflow: hidden; /* Prevents scrolling */
         }
+        #starterPage {
+            text-align: center;
+            padding: 20px;
+        }
+        .pictures {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .pictures img {
+            width: 100px;
+            height: auto;
+            border-radius: 8px;
+        }
         #gameContainer {
             display: none;
             position: relative;
@@ -62,7 +77,7 @@
             border-radius: 3px;
             cursor: pointer;
         }
-        #playButton {
+        .playButton {
             padding: 10px 20px;
             font-size: 18px;
             background-color: #007bff;
@@ -75,9 +90,16 @@
     </style>
 </head>
 <body>
-    <!-- Start Page Container -->
-    <div id="startContainer">
-        <button id="playButton">Play</button>
+    <!-- Starter Page Container -->
+    <div id="starterPage">
+        <h1>🎉 Hiep Hiep Hoera! 🎾</h1>
+        <p>Gefeliciteerd met je verjaardag, Werner! Geniet van het spel! 🎾🎂</p>
+        <div class="pictures">
+            <img src="IMG_20240229_213853.jpg" alt="Michael and Werner 1">
+            <img src="IMG_9980.jpg" alt="Michael and Werner 2">
+        </div>
+        <button class="playButton" onclick="startGame()">Play Game</button>
+        <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio>
     </div>
 
     <!-- Game Container -->
@@ -86,21 +108,23 @@
         <canvas id="gameCanvas"></canvas>
         <p id="score">Aantal slagen in de rally: 0</p>
         <div id="message"></div>
+        <audio id="hitSound" src="hit.mp3"></audio> <!-- Hit sound effect -->
     </div>
 
     <script>
-        const playButton = document.getElementById('playButton');
+        const starterPage = document.getElementById('starterPage');
         const exitButton = document.getElementById('exitButton');
         const gameContainer = document.getElementById('gameContainer');
-        const startContainer = document.getElementById('startContainer');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const messageElement = document.getElementById('message');
+        const birthdaySong = document.getElementById('birthdaySong');
+        const hitSound = document.getElementById('hitSound');
 
         const paddleWidth = 60;
         const paddleHeight = 120;
-        let wernerY = canvas.height / 2 - paddleHeight / 2;
+        let wernerY = canvas.height / 2 - paddleHeight / 2; // Center Werner vertically on the right side
         let wernerX = canvas.width - paddleWidth;
         let targetX = wernerX;
         let targetY = wernerY;
@@ -121,6 +145,12 @@
         const courtImage = new Image();
         courtImage.src = 'court.png';
 
+        // Start audio when the page loads
+        window.onload = function () {
+            birthdaySong.volume = 0.2; // Set volume for soft playback
+            birthdaySong.play();
+        };
+
         function requestFullScreenAndRotate() {
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
@@ -138,19 +168,22 @@
             });
         }
 
-        playButton.addEventListener('click', () => {
-            startContainer.style.display = 'none';
+        function startGame() {
+            starterPage.style.display = 'none';
             gameContainer.style.display = 'block';
+            birthdaySong.pause(); // Stop the birthday song when the game starts
             resizeCanvasToFit();
             requestFullScreenAndRotate();
+            wernerY = canvas.height / 2 - paddleHeight / 2; // Reset Werner's position to center
             gameLoop();
-        });
+        }
 
         exitButton.addEventListener('click', () => {
             document.exitFullscreen().catch(err => console.log('Exit fullscreen failed:', err));
             screen.orientation.unlock();
-            startContainer.style.display = 'flex';
+            starterPage.style.display = 'block';
             gameContainer.style.display = 'none';
+            birthdaySong.play(); // Resume the birthday song when exiting the game
         });
 
         function resizeCanvasToFit() {
@@ -219,6 +252,7 @@
                 ballSpeedY = -Math.abs(ballSpeedY);
             }
 
+            // Collision with Michael's paddle
             if (
                 ballX < paddleWidth &&
                 ballY > michaelY &&
@@ -230,6 +264,7 @@
                 ballSpeedY = deltaY * 0.1;
                 rallyScore++;
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+                playHitSound(); // Play sound on hit
 
                 if (rallyScore === 10) {
                     showMessage("Nu wat sneller, Werner!");
@@ -238,6 +273,7 @@
                 }
             }
 
+            // Collision with Werner's paddle
             if (
                 ballX > wernerX &&
                 ballY > wernerY &&
@@ -249,6 +285,7 @@
                 ballSpeedY = deltaY * 0.1;
                 rallyScore++;
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+                playHitSound(); // Play sound on hit
 
                 if (rallyScore === 10) {
                     showMessage("Nu wat sneller, Werner!");
@@ -257,6 +294,7 @@
                 }
             }
 
+            // Reset the game when a player misses
             if (ballX < 0 || ballX > canvas.width) {
                 ballX = canvas.width / 2;
                 ballY = canvas.height / 2;
@@ -266,6 +304,11 @@
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
                 showMessage("Mooie punt! Nog een keer!");
             }
+        }
+
+        function playHitSound() {
+            hitSound.currentTime = 0; // Reset to start to play again immediately
+            hitSound.play();
         }
 
         function showMessage(text) {
