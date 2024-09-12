@@ -1,58 +1,64 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl"> <!-- Specifies the language as Dutch -->
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Gefeliciteerd Werner! - Tennisspel</title>
+    <meta charset="UTF-8"> <!-- Sets the character encoding to UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- Sets the viewport for responsive design -->
+    <title>Gefeliciteerd Werner! - Tennisspel</title> <!-- Title of the webpage -->
     <style>
+        /* Basic styling for the body */
         body {
-            display: flex;
+            display: flex; /* Centers content vertically and horizontally */
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
+            height: 100vh; /* Full height of the viewport */
+            margin: 0; /* Removes default margin */
+            background-color: #f0f0f0; /* Light gray background */
             overflow: hidden; /* Prevents scrolling */
         }
+        /* Styling for the starter page */
         #starterPage {
             text-align: center;
             padding: 20px;
         }
+        /* Styling for images container */
         .pictures {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 10px; /* Space between images */
             margin: 20px 0;
         }
         .pictures img {
             width: 100px;
             height: auto;
-            border-radius: 8px;
+            border-radius: 8px; /* Rounded corners */
         }
+        /* Styling for the game container */
         #gameContainer {
-            display: none;
+            display: none; /* Hidden by default */
             position: relative;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden; /* Keeps the game fixed */
+            width: 100vw; /* Full viewport width */
+            height: 100vh; /* Full viewport height */
+            overflow: hidden; /* Prevents scrolling */
         }
         canvas {
             display: block;
-            margin: 0 auto; /* Centers the canvas horizontally */
-            border: 2px solid #000;
+            margin: 0 auto; /* Centers canvas */
+            border: 2px solid #000; /* Black border around the canvas */
         }
+        /* Message box styling */
         #message {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
             color: #fff;
             padding: 10px 20px;
             border-radius: 5px;
             font-size: 20px;
-            display: none;
+            display: none; /* Hidden by default */
         }
+        /* Styling for the score display */
         #score {
             position: absolute;
             bottom: 10px;
@@ -64,6 +70,7 @@
             border-radius: 5px;
             font-size: 18px;
         }
+        /* Styling for the exit button */
         #exitButton {
             position: absolute;
             top: 5px;
@@ -71,16 +78,17 @@
             transform: translateX(-50%);
             padding: 5px 10px;
             font-size: 10px;
-            background-color: #dc3545;
+            background-color: #dc3545; /* Red background */
             color: white;
             border: none;
             border-radius: 3px;
             cursor: pointer;
         }
+        /* Styling for the play button */
         .playButton {
             padding: 10px 20px;
             font-size: 18px;
-            background-color: #007bff;
+            background-color: #007bff; /* Blue background */
             color: white;
             border: none;
             border-radius: 5px;
@@ -92,50 +100,53 @@
 <body>
     <!-- Starter Page Container -->
     <div id="starterPage">
-        <h1>🎉 Hiep Hiep Hoera! 🎾</h1>
-        <p>Gefeliciteerd met je verjaardag, Werner! Geniet van het spel! 🎾🎂</p>
-        <div class="pictures">
+        <h1>🎉 Hiep Hiep Hoera! 🎾</h1> <!-- Heading with emojis -->
+        <p>Gefeliciteerd met je verjaardag, Werner! Geniet van het spel! 🎾🎂</p> <!-- Birthday message -->
+        <div class="pictures"> <!-- Images of Michael and Werner -->
             <img src="IMG_20240229_213853.jpg" alt="Michael and Werner 1">
             <img src="IMG_9980.jpg" alt="Michael and Werner 2">
         </div>
-        <button class="playButton" onclick="startGame()">Play Game</button>
-        <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio>
+        <button class="playButton" onclick="startGame()">Play Game</button> <!-- Button to start the game -->
+        <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio> <!-- Birthday song audio -->
     </div>
 
     <!-- Game Container -->
     <div id="gameContainer">
-        <button id="exitButton">Exit</button>
-        <canvas id="gameCanvas"></canvas>
-        <p id="score">Aantal slagen in de rally: 0</p>
-        <div id="message"></div>
+        <button id="exitButton">Exit</button> <!-- Button to exit the game -->
+        <canvas id="gameCanvas"></canvas> <!-- Canvas for game rendering -->
+        <p id="score">Aantal slagen in de rally: 0</p> <!-- Score display -->
+        <div id="message"></div> <!-- Message display -->
         <audio id="hitSound" src="hit.mp3"></audio> <!-- Hit sound effect -->
     </div>
 
     <script>
+        // DOM elements selection
         const starterPage = document.getElementById('starterPage');
         const exitButton = document.getElementById('exitButton');
         const gameContainer = document.getElementById('gameContainer');
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d'); // Canvas drawing context
         const scoreElement = document.getElementById('score');
         const messageElement = document.getElementById('message');
         const birthdaySong = document.getElementById('birthdaySong');
         const hitSound = document.getElementById('hitSound');
 
+        // Game variables
         const paddleWidth = 60;
         const paddleHeight = 120;
-        let wernerY = canvas.height / 2 - paddleHeight / 2; // Center Werner vertically on the right side
-        let wernerX = canvas.width - paddleWidth;
+        let wernerY = canvas.height / 2 - paddleHeight / 2; // Center Werner vertically
+        let wernerX = 1400; // Position Werner on the right
         let targetX = wernerX;
         let targetY = wernerY;
-        const wernerMaxSpeed = 5;
-        let michaelY = canvas.height / 2 - paddleHeight / 2;
-        let ballX = canvas.width / 2;
+        const wernerMaxSpeed = 5; // Maximum speed for Werner's movement
+        let michaelY = canvas.height / 2 - paddleHeight / 2; // Center Michael vertically
+        let ballX = canvas.width;
         let ballY = canvas.height / 2;
-        let ballSpeedX = 2;
-        let ballSpeedY = 1.5;
-        let rallyScore = 0;
+        let ballSpeedX = -2; // Horizontal speed of the ball
+        let ballSpeedY = 0; // Vertical speed of the ball
+        let rallyScore = 0; // Score counter
 
+        // Images for faces and court
         const michaelFace = new Image();
         michaelFace.src = 'michael_face.png';
 
@@ -145,12 +156,13 @@
         const courtImage = new Image();
         courtImage.src = 'court.png';
 
-        // Start audio when the page loads
+        // Play the birthday song when the page loads
         window.onload = function () {
-            birthdaySong.volume = 0.2; // Set volume for soft playback
+            birthdaySong.volume = 0.1; // Set volume for soft playback
             birthdaySong.play();
         };
 
+        // Function to request full screen and lock orientation
         function requestFullScreenAndRotate() {
             const elem = document.documentElement;
             if (elem.requestFullscreen) {
@@ -168,35 +180,39 @@
             });
         }
 
+        // Function to start the game
         function startGame() {
-            starterPage.style.display = 'none';
-            gameContainer.style.display = 'block';
-            birthdaySong.pause(); // Stop the birthday song when the game starts
-            resizeCanvasToFit();
-            requestFullScreenAndRotate();
-            wernerY = canvas.height / 2 - paddleHeight / 2; // Reset Werner's position to center
-            gameLoop();
+            starterPage.style.display = 'none'; // Hide starter page
+            gameContainer.style.display = 'block'; // Show game container
+            birthdaySong.pause(); // Stop the birthday song
+            resizeCanvasToFit(); // Adjust canvas size
+            requestFullScreenAndRotate(); // Request fullscreen and rotate
+            gameLoop(); // Start the game loop
         }
 
+        // Event listener to exit the game
         exitButton.addEventListener('click', () => {
             document.exitFullscreen().catch(err => console.log('Exit fullscreen failed:', err));
-            screen.orientation.unlock();
-            starterPage.style.display = 'block';
-            gameContainer.style.display = 'none';
-            birthdaySong.play(); // Resume the birthday song when exiting the game
+            screen.orientation.unlock(); // Unlock screen orientation
+            starterPage.style.display = 'block'; // Show starter page
+            gameContainer.style.display = 'none'; // Hide game container
+            birthdaySong.play(); // Resume the birthday song
         });
 
+        // Resize the canvas to fit the window
         function resizeCanvasToFit() {
             const margin = 20; // Margin to prevent cutoff
             canvas.width = window.innerWidth - margin;
             canvas.height = window.innerHeight - margin;
         }
 
+        // Function to draw a rectangle
         function drawRect(x, y, width, height, color) {
             ctx.fillStyle = color;
             ctx.fillRect(x, y, width, height);
         }
 
+        // Function to draw a circle
         function drawCircle(x, y, radius, color) {
             ctx.fillStyle = color;
             ctx.beginPath();
@@ -204,6 +220,7 @@
             ctx.fill();
         }
 
+        // Update Werner's position based on target coordinates
         function updateWernerPosition() {
             let deltaX = targetX - wernerX;
             let deltaY = targetY - wernerY;
@@ -217,6 +234,7 @@
                 wernerY = targetY;
             }
 
+            // Constrain Werner within the canvas
             if (wernerX < canvas.width / 2) {
                 wernerX = canvas.width / 2;
             }
@@ -228,10 +246,11 @@
             }
         }
 
+        // Update Michael's position based on the ball position
         function updateMichaelPosition() {
             const michaelCenter = michaelY + paddleHeight / 2;
             const targetPosition = ballY - paddleHeight / 4;
-            const moveSpeed = 4;
+            const moveSpeed = 6;
 
             if (michaelCenter < targetPosition) {
                 michaelY = Math.min(canvas.height - paddleHeight, michaelY + moveSpeed);
@@ -240,10 +259,12 @@
             }
         }
 
+        // Update the ball's position and handle collisions
         function updateBallPosition() {
             ballX += ballSpeedX;
             ballY += ballSpeedY;
 
+            // Ball collision with top and bottom edges
             if (ballY < 10) {
                 ballY = 10;
                 ballSpeedY = Math.abs(ballSpeedY);
@@ -259,14 +280,14 @@
                 ballY < michaelY + paddleHeight &&
                 ballSpeedX < 0
             ) {
-                ballSpeedX = -ballSpeedX;
+                ballSpeedX = -ballSpeedX; // Reverse ball direction
                 let deltaY = ballY - (michaelY + paddleHeight / 2);
-                ballSpeedY = deltaY * 0.1;
+                ballSpeedY = deltaY * 0.1; // Adjust vertical speed
                 rallyScore++;
-                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
+                scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`; // Update score
                 playHitSound(); // Play sound on hit
 
-                if (rallyScore === 10) {
+                if (rallyScore % 3 === 0) { // Increase speed after 3 hits
                     showMessage("Nu wat sneller, Werner!");
                     ballSpeedX *= 1.5;
                     ballSpeedY *= 1.5;
@@ -287,7 +308,7 @@
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
                 playHitSound(); // Play sound on hit
 
-                if (rallyScore === 10) {
+                if (rallyScore % 3 === 0) {
                     showMessage("Nu wat sneller, Werner!");
                     ballSpeedX *= 1.5;
                     ballSpeedY *= 1.5;
@@ -296,21 +317,25 @@
 
             // Reset the game when a player misses
             if (ballX < 0 || ballX > canvas.width) {
-                ballX = canvas.width / 2;
+                ballX = canvas.width - 100;
                 ballY = canvas.height / 2;
                 rallyScore = 0;
-                ballSpeedX = 2;
-                ballSpeedY = 1.5;
+                wernerY = canvas.height / 2 - paddleHeight / 2; // Center Werner vertically
+                wernerX = 1450; // Position Werner on the right
+		ballSpeedX = -3;
+                ballSpeedY = 0;
                 scoreElement.textContent = `Aantal slagen in de rally: ${rallyScore}`;
                 showMessage("Mooie punt! Nog een keer!");
             }
         }
 
+        // Play hit sound effect
         function playHitSound() {
-            hitSound.currentTime = 0; // Reset to start to play again immediately
+            hitSound.currentTime = -0.5; // Reset to start to play again immediately
             hitSound.play();
         }
 
+        // Display a message on the screen
         function showMessage(text) {
             messageElement.textContent = text;
             messageElement.style.display = 'block';
@@ -319,35 +344,44 @@
             }, 2000);
         }
 
+        // Main game loop
         function gameLoop() {
+            // Draw court background
             if (courtImage.complete) {
                 ctx.drawImage(courtImage, 0, 0, canvas.width, canvas.height);
             }
 
+            // Draw Michael's paddle
             if (michaelFace.complete) {
                 ctx.drawImage(michaelFace, 0, michaelY, paddleWidth, paddleHeight);
             } else {
                 drawRect(0, michaelY, paddleWidth, paddleHeight, 'white');
             }
 
+            // Draw Werner's paddle
             if (wernerFace.complete) {
                 ctx.drawImage(wernerFace, wernerX, wernerY, paddleWidth, paddleHeight);
             } else {
                 drawRect(wernerX, wernerY, paddleWidth, paddleHeight, 'white');
             }
 
-            drawCircle(ballX, ballY, 10, 'yellow');
+            // Draw the ball
+            drawCircle(ballX, ballY, 8, 'yellow');
 
+            // Update positions
             updateBallPosition();
             updateMichaelPosition();
             updateWernerPosition();
 
+            // Request the next animation frame
             requestAnimationFrame(gameLoop);
         }
 
+        // Event listeners for touch and mouse input
         canvas.addEventListener('touchstart', handleTouch);
         canvas.addEventListener('mousedown', handleTouch);
 
+        // Handle touch or click input to move Werner
         function handleTouch(event) {
             const rect = canvas.getBoundingClientRect();
             const touchX = event.clientX - rect.left || event.touches[0].clientX - rect.left;
@@ -357,6 +391,7 @@
             targetY = Math.max(0, Math.min(touchY, canvas.height - paddleHeight));
         }
 
+        // Resize canvas when window size changes
         window.addEventListener('resize', resizeCanvasToFit);
     </script>
 </body>
